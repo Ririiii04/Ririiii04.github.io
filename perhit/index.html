@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perhitungan Kecepatan Gerak Partikel di Atmosfer</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: url('https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDF8fHRhcGF8ZW58MHx8fHwxNjYyMjY0NzY0&ixlib=rb-1.2.1&q=80&w=1080') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: black;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Perhitungan Kecepatan Gerak Partikel di Atmosfer</h1>
+        <label for="particleCount">Jumlah Partikel:</label>
+        <input type="number" id="particleCount" value="100">
+
+        <label for="pressure">Tekanan (hPa):</label>
+        <input type="number" id="pressure" value="1013">
+
+        <label for="temperature">Suhu (°C):</label>
+        <input type="number" id="temperature" value="25">
+
+        <label for="windSpeed">Kecepatan Angin (m/s):</label>
+        <input type="number" id="windSpeed" value="5">
+
+        <button id="startButton">Hitung Kecepatan</button>
+
+        <div id="result" class="result"></div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Event listener untuk tombol hitung kecepatan
+        document.getElementById('startButton').addEventListener('click', function() {
+            const particleCount = parseInt(document.getElementById('particleCount').value);
+            const pressure = parseFloat(document.getElementById('pressure').value);
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+
+            // Hitung kecepatan partikel
+            const particleSpeed = calculateParticleSpeed(particleCount, pressure, temperature, windSpeed);
+            
+            // Tampilkan hasil
+            document.getElementById('result').innerText = `Kecepatan rata-rata partikel: ${particleSpeed.toFixed(2)} m/s`;
+
+            // Simulasi pergerakan partikel menggunakan metode Euler
+            simulateParticleMovement(particleSpeed);
+        });
+
+        // Fungsi untuk menghitung kecepatan partikel
+        function calculateParticleSpeed(particleCount, pressure, temperature, windSpeed) {
+            const gasConstant = 287.05; // J/(kg·K) untuk udara
+            const absoluteTemperature = temperature + 273.15; // Konversi ke Kelvin
+
+            // Menggunakan rumus kecepatan partikel
+            const speed = (pressure / (gasConstant * absoluteTemperature)) + windSpeed;
+
+            return speed;
+        }
+
+        // Fungsi untuk mensimulasikan pergerakan partikel menggunakan metode Euler
+        function simulateParticleMovement(initialSpeed) {
+            const timeStep = 0.1; // Interval waktu untuk metode Euler
+            let position = 0; // Posisi awal
+            let speed = initialSpeed; // Kecepatan awal
+
+            // Bersihkan kanvas sebelum menggambar
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground(); // Gambar latar belakang
+
+            // Simulasi selama 10 detik
+            let totalTime = 10; // Total waktu simulasi
+            let time = 0; // Waktu saat ini
+
+            const interval = setInterval(() => {
+                if (time >= totalTime) {
+                    clearInterval(interval); // Hentikan simulasi setelah 10 detik
+                    return;
+                }
+
+                // Update posisi menggunakan metode Euler
+                position += speed * timeStep;
+
+                // Gambar posisi partikel di kanvas
+                drawParticle(position);
+
+                // Update waktu
+                time += timeStep;
+            }, timeStep * 1000); // Konversi ke milidetik
+        }
+
+        // Fungsi untuk menggambar partikel
+        function drawParticle(position) {
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2 + position, canvas.height / 2, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Fungsi untuk menggambar latar belakang (Tata Surya)
+        function drawBackground() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Gambar Matahari
+            ctx.fillStyle = 'yellow';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, 50, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Gambar planet (contoh)
+            ctx.fillStyle = 'blue'; // Planet Biru
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2 + 100, canvas.height / 2, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'red'; // Planet Merah
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2 - 150, canvas.height / 2, 30, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Gambar latar belakang saat halaman dimuat
+        drawBackground();
+
+        // Mengatur ukuran kanvas saat jendela diubah ukurannya
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            drawBackground(); // Gambar ulang latar belakang saat ukuran kanvas berubah
+        });
+    </script>
+</body>
+</html>
